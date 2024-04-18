@@ -17,6 +17,17 @@ from time import sleep
         # create new frame for text input
 ## decompose classes into MVC files
 
+
+
+## NEW IN THIS VERSION
+
+# adding second App class (AppWindow_Input) and modifying it to have controller attribute
+# trying to work on switching frames
+# see: https://stackoverflow.com/questions/34301300/tkinter-understanding-how-to-switch-frames
+# see: https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter
+
+## halfway implemented this tweak but didn't get it working yet
+
 class Model():
     def __init__(self):
         self.name = "myDataModel"
@@ -262,27 +273,55 @@ class Controller():
 
 
 class App:
-    def __init__(self, root):
+    def __init__(self, root, controller):
 
         Controller.retrievesavedata() 
         #var = StringVar()
+
+
+
+        self.controller = mycontroller
 
         #setting title
         root.title("Gibberisher 1.3")
         #setting window size
         width=1200
-        height=775
+        height=800
         screenwidth = root.winfo_screenwidth()
         screenheight = root.winfo_screenheight()
         alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
         root.geometry(alignstr)
         root.resizable(width=False, height=False)
 
-        canvas1 = tk.Canvas(root,width=1200,height=775)
+        ## create canvas which lets us set background img
+        canvas1 = tk.Canvas(root,width=1200,height=800)
         canvas1.pack()
         canvas1.create_image(0,0,image=bg_img,anchor='nw')
         canvas1.place(relx=0,rely=0)
+
+        ##
+        ##
+        ## testing technique to create new frames / windows (Frames is the right word technically)
         
+        # first we make a "container" frame to act as a parent and let other frames inherit attributes / settings
+        container = tk.Frame(self)
+        container.pack(side="top",fill="both",expand=True)
+        container.grid_rowconfigure(0,weight=1)
+        container.grid_columnconfigure(0,weight=1)
+
+        #then we do SOMETHING for the frames
+        self.frames = {}
+        for F in (PageOne,PageTwo):
+            page_name = F.__name__
+            frame = F(parent=container,controller=self)
+            self.frames[page_name] = frame
+            frame.grid(row=0,column=0,sticky="nsew")
+        
+        # this is how the Stackoverflow answer sets up a default window but we have that already, so commenting out
+        #self.show_frame("StartPage")
+
+        
+
         GButton_855=tk.Button(root)
         GButton_855["anchor"] = "center"
         GButton_855["bg"] = "#b0ffab"
@@ -343,23 +382,6 @@ class App:
         GLabel_388["text"] = "Current Read File (File Name + File Directory):"
         GLabel_388.place(x=330,y=400,width=553,height=37)
 
-        #GLabel_652=tk.Label(root)
-        #ft = tkFont.Font(family='Times',size=16)
-        #GLabel_652["font"] = ft
-        #GLabel_652["fg"] = "#333333"
-        #GLabel_652["justify"] = "center"
-        #GLabel_652["text"] = "Gibberisher 1.3"
-        #GLabel_652.place(x=550,y=30,width=183,height=30)
-
-        #GLabel_332=tk.Label(root)
-        #ft = tkFont.Font(family='Times',size=10)
-        #GLabel_332["font"] = ft
-        #GLabel_332["fg"] = "#333333"
-        #GLabel_332["justify"] = "center"
-        #GLabel_332["text"] = "Developed by MafiaSec"
-        #GLabel_332.place(x=550,y=530,width=172,height=40)
-
-
         ##
         ##
         ## READFILENAME LABEL
@@ -373,13 +395,19 @@ class App:
         GLabel_85["justify"] = "center"
         GLabel_85["textvariable"] = str(self.string_variable)
         GLabel_85.place(x=330,y=430,width=554,height=42)
-        ##
-        ##
-        ##
-        
-    ## This is kind of backwards anyways; don't make update functions for specific text. Just make the text a variable and force a Tkinter root window update
-    #def updateLabel1(self,x):
-    #    root.GLabel_85["text"] = str(x)
+
+
+
+
+    def show_frame(self, page_name):
+            # Show a frame for a given page name #
+            frame = self.frames[page_name]
+            frame.tkraise()
+
+    ## testing technique to create new frames / windows (Frames is the right word technically)
+    ##
+    ## 
+
 
     def GButton_855_command(self):
         Controller.setfilename()
@@ -391,8 +419,7 @@ class App:
         Controller.generatewordlist()
     #DEBUG
     def GButton_924_command(self):
-        #app2.setInput(App_InputWindow)
-        self.updateLabel()
+        self.show_frame("PageOne")
     #DEBUG
 
     # now WORKING WORKING WORKING WORKING
@@ -404,50 +431,17 @@ class App:
 
 
 
-class AppWindow_Input1:
-    def __init__(self, root):
+class PageOne(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = mycontroller
+        PageOnelabel1 = tk.Label(self, text="This is Page One")
+        PageOnelabel1.pack(side="top",fill="x",pady=10)
 
-        Controller.retrievesavedata() 
-        #var = StringVar()
-
-        #setting title
-        root.title("Gibberisher 1.3 - Input Window")
-        #setting window size
-        width=1200
-        height=775
-        screenwidth = root.winfo_screenwidth()
-        screenheight = root.winfo_screenheight()
-        alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
-        root.geometry(alignstr)
-        root.resizable(width=False, height=False)
-
-        canvas1 = tk.Canvas(root,width=1200,height=775)
-        canvas1.pack()
-        canvas1.create_image(0,0,image=bg_img,anchor='nw')
-        canvas1.place(relx=0,rely=0)
-        
-        GButton_855=tk.Button(root)
-        GButton_855["anchor"] = "center"
-        GButton_855["bg"] = "#b0ffab"
-        ft = tkFont.Font(family='Times',size=10)
-        GButton_855["font"] = ft
-        GButton_855["fg"] = "#000000"
-        GButton_855["justify"] = "center"
-        GButton_855["text"] = "Set File Name"
-        GButton_855["relief"] = "raised"
-        GButton_855.place(x=330,y=160,width=557,height=30)
-        GButton_855["command"] = self.GButton_855_command
-
-
-    #DEBUG
-
-    # now WORKING WORKING WORKING WORKING
-    # https://stackoverflow.com/questions/47878587/python-accessing-widget-items-from-outside-of-a-class
-    # solution: create string_variable with "self." prefix to make it an attribute of the App class
-    def updateLabel(self):
-        self.string_variable.set(str(mymodel.readfilename))
-
-
+        ## This is one of the likely places I'll have issues, since I'm deviating from the StackOverflower answer
+        ## They use lambda: controller.show_frame()
+        button1 = tk.Button(self,text="Go back to main window", command = lambda: root.mainloop())
+        button1.pack()
 
 
 
@@ -466,6 +460,6 @@ root = tk.Tk()
 ##Create bg image (Notably, outside of the main App class so it doesn't get 'blown away' after we leave that __init__ method)
 bg_img = tk.PhotoImage(file="C:\\Users\\Spooky\\Documents\\PyCharm\\img3.png")
 ## Create "app" instance of Tkinter class for view
-app = App(root)
+app = App(root, mycontroller)
 ## Run the "root" window in a loop to capture user input and display GUI
 root.mainloop()
