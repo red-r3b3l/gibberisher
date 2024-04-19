@@ -10,6 +10,8 @@ from time import sleep
 
 ## NEXT-STEPS
 
+## make sure we understand Controller() and controller object mycontroller, and that the usage throughout the code is consistent
+        # it should tie each class together and probably be an attribute for each class
 ## get tkinter.Label to update text to show new readfilename
         # halfway working, see line 182
         # TypeError: App.updateLabel1() missing 1 required positional argument: 'x'
@@ -25,6 +27,8 @@ from time import sleep
 # trying to work on switching frames
 # see: https://stackoverflow.com/questions/34301300/tkinter-understanding-how-to-switch-frames
 # see: https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter
+# https://coderslegacy.com/python/switching-between-tkinter-frames-with-tkraise/
+
 
 ## halfway implemented this tweak but didn't get it working yet
 
@@ -71,6 +75,7 @@ class Model():
 
 
 class Controller():
+    
     def savedata():
         readfilename = mymodel.readfilename
         base_words_array = mymodel.base_words_array
@@ -173,6 +178,7 @@ class Controller():
             ### BIG BREAKTHROUGH
             ## THIS IS IS THE RIGHT SYNTAX TO REFERENCE A METHOD IN THE APP CLASS 
             App.updateLabel(app)
+
             Controller.savedata()
             Controller.mainmenu()
             ##
@@ -280,7 +286,7 @@ class App:
 
 
 
-        self.controller = mycontroller
+        self.controller = controller
 
         #setting title
         root.title("Gibberisher 1.3")
@@ -299,28 +305,27 @@ class App:
         canvas1.create_image(0,0,image=bg_img,anchor='nw')
         canvas1.place(relx=0,rely=0)
 
-        ##
-        ##
-        ## testing technique to create new frames / windows (Frames is the right word technically)
-        
-        # first we make a "container" frame to act as a parent and let other frames inherit attributes / settings
-        container = tk.Frame(self)
-        container.pack(side="top",fill="both",expand=True)
-        container.grid_rowconfigure(0,weight=1)
-        container.grid_columnconfigure(0,weight=1)
 
-        #then we do SOMETHING for the frames
-        self.frames = {}
-        for F in (PageOne,PageTwo):
-            page_name = F.__name__
-            frame = F(parent=container,controller=self)
-            self.frames[page_name] = frame
-            frame.grid(row=0,column=0,sticky="nsew")
-        
-        # this is how the Stackoverflow answer sets up a default window but we have that already, so commenting out
-        #self.show_frame("StartPage")
+       
+        ## frame switch
+        mainframe = tk.Frame(root)
+        mainframe.pack(padx=10,pady=10,fill='both',expand=1)
+        self.windowNum=0
 
-        
+        self.framelist = []
+        self.framelist.append(PageOne(mainframe))
+        self.framelist.append(PageTwo(mainframe))
+        self.framelist[1].forget()
+
+        bottomframe = tk.Frame(root)
+        bottomframe.pack(padx=10,pady=10)
+
+        switch = tk.Button(bottomframe,text="Switch", command=self.switchWindows)
+        switch.pack(padx=10,pady=10)
+        ## frame switch
+
+
+
 
         GButton_855=tk.Button(root)
         GButton_855["anchor"] = "center"
@@ -398,15 +403,11 @@ class App:
 
 
 
-
-    def show_frame(self, page_name):
-            # Show a frame for a given page name #
-            frame = self.frames[page_name]
-            frame.tkraise()
-
-    ## testing technique to create new frames / windows (Frames is the right word technically)
-    ##
-    ## 
+    def switchWindows(self):
+        self.framelist[self.windowNum].forget()
+        self.windowNum = (self.windowNum + 1) % len(self.framelist)
+        self.framelist[self.windowNum].tkraise()
+        self.framelist[self.windowNum].pack(padx=10,pady=10)
 
 
     def GButton_855_command(self):
@@ -432,16 +433,16 @@ class App:
 
 
 class PageOne(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = mycontroller
+    def __init__(self, parent):
+        super().__init__(parent)
         PageOnelabel1 = tk.Label(self, text="This is Page One")
         PageOnelabel1.pack(side="top",fill="x",pady=10)
 
-        ## This is one of the likely places I'll have issues, since I'm deviating from the StackOverflower answer
-        ## They use lambda: controller.show_frame()
-        button1 = tk.Button(self,text="Go back to main window", command = lambda: root.mainloop())
-        button1.pack()
+class PageTwo(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        PageTwolabel1 = tk.Label(self, text="This is Page Two")
+        PageTwolabel1.pack(side="top",fill="x",pady=10)
 
 
 
@@ -463,3 +464,4 @@ bg_img = tk.PhotoImage(file="C:\\Users\\Spooky\\Documents\\PyCharm\\img3.png")
 app = App(root, mycontroller)
 ## Run the "root" window in a loop to capture user input and display GUI
 root.mainloop()
+
